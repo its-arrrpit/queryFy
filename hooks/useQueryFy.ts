@@ -1,0 +1,281 @@
+
+import { useState, useCallback, useEffect } from 'react';
+import {
+  uploadDocument,
+  queryDocument,
+  getDocuments,
+  deleteDocument,
+  deleteAllDocuments,
+  BackendDocument,
+  QueryResponse
+} from '@/lib/api';
+import { Document, Question } from '@/types';
+
+export function useQueryFy() {
+  const [documents, setDocuments] = useState<Document[]>([]);
+  const [questions, setQuestions] = useState<Question[]>([]);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [backendDocuments, setBackendDocuments] = useState<BackendDocument[]>([]);
+
+  const clearAllDocuments = useCallback(async () => {
+    try {
+      const response = await deleteAllDocuments();
+      if (response.success) {
+        setDocuments([]);
+        setBackendDocuments([]);
+        setQuestions([]);
+      } else {
+        console.error('Clear all documents failed:', response.error);
+      }
+    } catch (error) {
+      console.error('Clear all documents error:', error);
+    }
+  }, []);
+
+  const loadDocuments = useCallback(async () => {
+    const response = await getDocuments();
+    if (response.success && response.data) {
+      setBackendDocuments(response.data.documents);
+      
+      // Convert backend documents to frontend format
+      const frontendDocs: Document[] = response.data.documents.map(doc => ({
+        id: doc.id,
+        name: doc.originalName,
+        type: 'unknown' as const,
+        weight: Math.floor(doc.fileSize / 1024), // Use file size as weight
+        uploadedAt: new Date(doc.uploadedAt)
+      }));
+      
+      setDocuments(frontendDocs);
+    }
+  }, []);
+
+  const handleFileUpload = useCallback(async (files: FileList) => {
+    if (!files || files.length === 0) return;
+
+    setIsProcessing(true);
+    
+    try {
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const uploadResponse = await uploadDocument(file);
+        
+        if (uploadResponse.success && uploadResponse.data) {
+          const document = uploadResponse.data.document;
+          
+          // Add to documents list
+          const newDoc: Document = {
+            id: document.id,
+            name: document.originalName,
+            type: document.originalName.toLowerCase().includes('known') ? 'known' : 'unknown',
+            weight: document.originalName.toLowerCase().includes('known') ? 0.5 : 2.0,
+            uploadedAt: new Date()
+          };
+          
+          setDocuments(prev => [...prev, newDoc]);
+          
+          // Add to backend documents with proper type
+          const backendDoc = {
+            id: document.id,
+            originalName: document.originalName,
+            fileSize: document.fileSize || 0,
+            mimeType: document.mimeType || 'application/octet-stream',
+            textLength: document.textLength || 0,
+            uploadedAt: new Date().toISOString()
+          };
+          setBackendDocuments(prev => [...prev, backendDoc]);
+
+          // Don't auto-generate questions - wait for user input
+          console.log('Document uploaded successfully:', document.originalName);
+        }
+      }
+    } catch (error) {
+      console.error('File upload error:', error);
+    } finally {
+      setIsProcessing(false);
+    }
+  }, []);
+
+  const generateQuestionsForDocument = useCallback(async (document: BackendDocument) => {
+    const sampleQuestions = [
+      "What is the main topic of this document?",
+      "Can you summarize the key points?",
+      "What are the most important findings?",
+      "Are there any specific recommendations mentioned?",
+      "What conclusions can be drawn from this document?"
+    ];
+
+    const newQuestions: Question[] = [];
+
+    for (const questionText of sampleQuestions) {
+      const questionId = `${document.id}-${Date.now()}-${Math.random()}`;
+      
+      // Add question in generating state
+      const question: Question = {
+        id: questionId,
+        documentId: document.id,
+        documentName: document.originalName,
+        text: questionText,
+        answer: '',
+        weight: 1,
+        feedback: null,
+        isGenerating: true
+      };
+      
+      newQuestions.push(question);
+      setQuestions(prev => [...prev, question]);
+
+      // Query the backend
+      try {
+        const queryResponse = await queryDocument(document.id, questionText);
+        
+        if (queryResponse.success && queryResponse.data) {
+          const response = queryResponse.data.query;
+          
+          // Update question with response
+          setQuestions(prev => prev.map(q => 
+            q.id === questionId 
+              ? {
+                  ...q,
+                  answer: response.answer,
+                  isGenerating: false,
+                  weight: Math.round(response.confidence * 5) // Convert confidence to 1-5 scale
+                }
+              : q
+          ));
+        } else {
+          // Handle query error
+          setQuestions(prev => prev.map(q => 
+            q.id === questionId 
+              ? {
+                  ...q,
+                  answer: 'Sorry, I couldn\'t process this question. Please try again.',
+                  isGenerating: false,
+                  weight: 1
+                }
+              : q
+          ));
+        }
+      } catch (error) {
+        console.error('Query error:', error);
+        setQuestions(prev => prev.map(q => 
+          q.id === questionId 
+            ? {
+                ...q,
+                answer: 'An error occurred while processing this question.',
+                isGenerating: false,
+                weight: 1
+              }
+            : q
+        ));
+      }
+
+      // Add delay between questions to avoid rate limiting
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+  }, []);
+
+  const handleCustomQuery = useCallback(async (documentId: string, queryText: string, documentName?: string): Promise<string> => {
+    try {
+      // Find the document (optional - we can work without it)
+      const document = documents.find(doc => doc.id === documentId) || 
+                      backendDocuments.find(doc => doc.id === documentId);
+      
+      // Get document name from parameter, found document, or fallback
+      const docName = documentName || 
+                     (document && ('originalName' in document ? document.originalName : document.name)) || 
+                     'Unknown Document';
+
+      console.log('🔍 handleCustomQuery called with:', { documentId, queryText, docName });
+
+      // Create question entry immediately
+      const questionId = `${documentId}-${Date.now()}-${Math.random()}`;
+      const question: Question = {
+        id: questionId,
+        documentId: documentId,
+        documentName: docName,
+        text: queryText,
+        answer: '',
+        weight: 1,
+        feedback: null,
+        isGenerating: true
+      };
+
+      // Add question to state
+      setQuestions(prev => [...prev, question]);
+
+      // Query the backend
+      const response = await queryDocument(documentId, queryText);
+      
+      if (response.success && response.data) {
+        const aiResponse = response.data.query;
+        
+        // Update question with response
+        setQuestions(prev => prev.map(q => 
+          q.id === questionId 
+            ? {
+                ...q,
+                answer: aiResponse.answer,
+                isGenerating: false,
+                weight: Math.round((aiResponse.confidence || 0.7) * 5) // Convert confidence to 1-5 scale
+              }
+            : q
+        ));
+
+        return aiResponse.answer;
+      } else {
+        // Update question with error
+        setQuestions(prev => prev.map(q => 
+          q.id === questionId 
+            ? {
+                ...q,
+                answer: response.error || 'Query failed',
+                isGenerating: false,
+                weight: 1
+              }
+            : q
+        ));
+        return response.error || 'Query failed';
+      }
+    } catch (error) {
+      console.error('Custom query error:', error);
+      return 'An error occurred while processing your query.';
+    }
+  }, [documents, backendDocuments]);
+
+  const handleDeleteDocument = useCallback(async (documentId: string) => {
+    try {
+      const response = await deleteDocument(documentId);
+      
+      if (response.success) {
+        // Remove from both lists
+        setDocuments(prev => prev.filter(doc => doc.id !== documentId));
+        setBackendDocuments(prev => prev.filter(doc => doc.id !== documentId));
+        setQuestions(prev => prev.filter(q => q.documentId !== documentId));
+      } else {
+        console.error('Delete failed:', response.error);
+      }
+    } catch (error) {
+      console.error('Delete error:', error);
+    }
+  }, []);
+
+  const updateQuestionFeedback = useCallback((questionId: string, feedback: 'positive' | 'negative') => {
+    setQuestions(prev => prev.map(q => 
+      q.id === questionId ? { ...q, feedback } : q
+    ));
+  }, []);
+
+  return {
+    documents,
+    questions,
+    isProcessing,
+    backendDocuments,
+    handleFileUpload,
+    handleCustomQuery,
+    handleDeleteDocument,
+    updateQuestionFeedback,
+    loadDocuments,
+    clearAllDocuments
+  };
+}
