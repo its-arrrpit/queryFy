@@ -136,7 +136,7 @@ export default function QAPlatform() {
       setSelectedDocumentId(lastDoc.id);
       (async () => {
         try {
-          const res = await fetch(`http://localhost:5000/api/upload/recommended-questions/${lastDoc.id}`);
+          const res = await fetch(`https://queryfy-backend.onrender.com/api/upload/recommended-questions/${lastDoc.id}`);
           if (res.ok) {
             const data = await res.json();
             if (Array.isArray(data.questions) && data.questions.length > 0) {
@@ -321,7 +321,7 @@ export default function QAPlatform() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 animate-fade-in-up">
+  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 animate-fade-in-up">
           <Card className='bg-white/10 backdrop-blur-md border border-white/20 shadow-2xl hover:bg-white/15 transition-all duration-300 hover:scale-105 hover:shadow-cyan-500/30 group'>
             <CardContent className="p-6">
               <div className="flex items-center gap-4">
