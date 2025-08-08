@@ -55,7 +55,7 @@ export default function QAPlatform() {
       const isConnected = await checkBackendHealth();
       setBackendConnected(isConnected);
       if (!isConnected) {
-        console.warn('QueryFy backend is not available. Please ensure the backend server is running on http://localhost:5000');
+  console.warn('QueryFy backend is not available. Please ensure the backend server is running on https://queryfy-backend.onrender.com');
       }
     };
     

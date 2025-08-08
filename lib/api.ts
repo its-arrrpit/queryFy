@@ -1,6 +1,9 @@
 /**
  * Delete all documents
  */
+
+const API_BASE_URL = 'https://queryfy-backend.onrender.com/api';
+
 export async function deleteAllDocuments(): Promise<ApiResponse<{}>> {
   try {
     const response = await fetch(`${API_BASE_URL}/upload`, {
@@ -23,7 +26,6 @@ export async function deleteAllDocuments(): Promise<ApiResponse<{}>> {
   }
 }
 // API service for QueryFy backend integration
-const API_BASE_URL = 'http://localhost:5000/api';
 
 export interface BackendDocument {
   id: string;
