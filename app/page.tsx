@@ -557,21 +557,21 @@ export default function QAPlatform() {
                           })()}
                         </span>
                       </div>
-                      <div className="grid grid-cols-5 sm:grid-cols-10 gap-1">
+            <div className="grid grid-cols-5 sm:grid-cols-10 gap-1 w-full">
                         {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((rating) => (
                           <Button
                             key={rating}
                             onClick={() => handleCategoryRating(questions[questions.length - 1]?.id, key, rating)}
                             variant="outline"
                             size="sm"
-                            className={`w-8 h-8 p-0 text-sm font-bold transition-all duration-300 ${
+              className={`w-7 h-7 sm:w-8 sm:h-8 p-0 px-0 text-xs sm:text-sm font-bold transition-all duration-300 ${
                               (() => {
                                 const activeQ = questions[questions.length - 1];
                                 const r = activeQ ? (ratingsByQuestion[activeQ.id] ?? { accuracy: 0, efficacy: 0, userFriendly: 0, relevance: 0 }) : { accuracy: 0, efficacy: 0, userFriendly: 0, relevance: 0 };
                                 return r[key] === rating;
                               })()
-                                ? 'bg-yellow-500 hover:bg-yellow-600 text-white border-yellow-500 scale-110 shadow-lg shadow-yellow-500/50'
-                                : 'bg-white/10 hover:bg-yellow-500/70 text-white border-white/30 hover:scale-105 hover:shadow-md'
+                ? 'bg-yellow-500 hover:bg-yellow-600 text-white border-yellow-500 sm:scale-110 shadow-lg shadow-yellow-500/50'
+                : 'bg-white/10 hover:bg-yellow-500/70 text-white border-white/30 sm:hover:scale-105 hover:shadow-md'
                             }`}
                           >
                             {rating}
