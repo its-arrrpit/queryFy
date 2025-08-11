@@ -302,16 +302,16 @@ export default function QAPlatform() {
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-500/10 rounded-full blur-3xl animate-pulse"></div>
         <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl animate-pulse" style={{animationDelay: '2s'}}></div>
       </div>
-      <div className="container mx-auto px-4 py-8 relative z-10">
+      <div className="container mx-auto px-4 py-6 sm:py-8 relative z-10">
         <div className="min-h-full p-4">
           <div className="relative max-w-6xl mx-auto space-y-6">
         {/* Header */}
-        <div className="text-center space-y-4 bg-white/10 backdrop-blur-md border border-white/20 shadow-2xl rounded-2xl p-8 animate-fade-in-down hover:bg-white/15 transition-all duration-500">
-          <h1 className="text-6xl font-bold bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent flex items-center justify-center gap-4 animate-pulse">
-            <Brain className="h-12 w-12 text-cyan-400 animate-bounce" />
+        <div className="text-center space-y-4 bg-white/10 backdrop-blur-md border border-white/20 shadow-2xl rounded-2xl p-4 sm:p-6 md:p-8 animate-fade-in-down hover:bg-white/15 transition-all duration-500">
+          <h1 className="text-3xl sm:text-5xl md:text-6xl font-bold bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent flex items-center justify-center gap-3 sm:gap-4 animate-pulse">
+            <Brain className="h-8 w-8 sm:h-10 sm:w-10 md:h-12 md:w-12 text-cyan-400 animate-bounce" />
             QueryFy
           </h1>
-          <p className="text-slate-200 font-medium text-xl max-w-3xl mx-auto leading-relaxed">
+          <p className="text-slate-200 font-medium text-base sm:text-lg md:text-xl max-w-3xl mx-auto leading-relaxed">
             🚀 Upload documents to extract questions and get AI-powered answers with intelligent scoring
           </p>
           {/* Runtime debug banner to help detect misconfiguration in production */}
@@ -327,51 +327,51 @@ export default function QAPlatform() {
         </div>
 
         {/* Stats Cards */}
-  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 animate-fade-in-up">
+  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 animate-fade-in-up">
           <Card className='bg-white/10 backdrop-blur-md border border-white/20 shadow-2xl hover:bg-white/15 transition-all duration-300 hover:scale-105 hover:shadow-cyan-500/30 group'>
-            <CardContent className="p-6">
+    <CardContent className="p-4 sm:p-6">
               <div className="flex items-center gap-4">
                 <div className="p-3 bg-cyan-500/20 rounded-xl group-hover:bg-cyan-500/30 transition-colors duration-300">
-                  <FileText className="h-8 w-8 text-cyan-300 group-hover:scale-110 transition-transform duration-300" />
+      <FileText className="h-6 w-6 sm:h-8 sm:w-8 text-cyan-300 group-hover:scale-110 transition-transform duration-300" />
                 </div>
                 <div>
-                  <p className="text-lg font-semibold text-slate-200 group-hover:text-white transition-colors duration-300">Documents</p>
-                  <p className="text-3xl font-bold text-white group-hover:text-cyan-300 transition-colors duration-300">{documents.length}</p>
+      <p className="text-base sm:text-lg font-semibold text-slate-200 group-hover:text-white transition-colors duration-300">Documents</p>
+      <p className="text-2xl sm:text-3xl font-bold text-white group-hover:text-cyan-300 transition-colors duration-300">{documents.length}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
           
           <Card className='bg-white/10 backdrop-blur-md border border-white/20 shadow-2xl hover:bg-white/15 transition-all duration-300 hover:scale-105 hover:shadow-yellow-500/20'>
-            <CardContent className="p-6">
+    <CardContent className="p-4 sm:p-6">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-purple-500/20 rounded-lg">
-                  <Target className="h-8 w-8 text-purple-300" />
+      <Target className="h-6 w-6 sm:h-8 sm:w-8 text-purple-300" />
                 </div>
                 <div>
-                  <p className="text-lg font-semibold text-slate-200">Questions</p>
-                  <p className="text-3xl font-bold text-white">{questions.length}</p>
+      <p className="text-base sm:text-lg font-semibold text-slate-200">Questions</p>
+      <p className="text-2xl sm:text-3xl font-bold text-white">{questions.length}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
           <Card className='bg-white/10 backdrop-blur-md border border-white/20 shadow-2xl hover:bg-white/15 transition-all duration-300 hover:scale-105 hover:shadow-green-500/20'>
-            <CardContent className="p-6">
+    <CardContent className="p-4 sm:p-6">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-green-500/20 rounded-lg">
                   <div className="h-8 w-8 rounded-full border-4 border-green-300 border-t-transparent animate-spin-slow"></div>
                 </div>
                 <div>
-                  <p className="text-lg font-semibold text-slate-200">Progress</p>
-                  <p className="text-3xl font-bold text-white">{Math.round(getProgress())}%</p>
+      <p className="text-base sm:text-lg font-semibold text-slate-200">Progress</p>
+      <p className="text-2xl sm:text-3xl font-bold text-white">{Math.round(getProgress())}%</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
           <Card className='bg-white/10 backdrop-blur-md border border-white/20 shadow-2xl hover:bg-white/15 transition-all duration-300 hover:scale-105 hover:shadow-yellow-500/20'>
-            <CardContent className="p-6">
+    <CardContent className="p-4 sm:p-6">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-yellow-500/20 rounded-lg">
                   <div className="h-8 w-8 flex items-center justify-center">
@@ -379,8 +379,8 @@ export default function QAPlatform() {
                   </div>
                 </div>
                 <div>
-                  <p className="text-lg font-semibold text-slate-200">Overall Score</p>
-                  <p className="text-3xl font-bold text-white">
+      <p className="text-base sm:text-lg font-semibold text-slate-200">Overall Score</p>
+      <p className="text-2xl sm:text-3xl font-bold text-white">
                     {(() => {
                       const activeQ = questions[questions.length - 1];
                       const r = activeQ ? (ratingsByQuestion[activeQ.id] ?? { accuracy: 0, efficacy: 0, userFriendly: 0, relevance: 0 }) : { accuracy: 0, efficacy: 0, userFriendly: 0, relevance: 0 };
@@ -402,9 +402,9 @@ export default function QAPlatform() {
         {/* File Upload and Query */}
         <Card className='bg-white/10 backdrop-blur-md border border-white/20 shadow-2xl hover:shadow-blue-500/20 transition-all duration-300 animate-slide-up group'>
           <CardHeader className=" border-b border-white/10 group-hover:from-blue-500/15 group-hover:to-purple-500/15 transition-all duration-300">
-            <CardTitle className="text-2xl font-bold text-white flex items-center gap-3 group-hover:text-blue-300 transition-colors duration-300">
+            <CardTitle className="text-xl sm:text-2xl font-bold text-white flex items-center gap-2 sm:gap-3 group-hover:text-blue-300 transition-colors duration-300">
               <div className="p-2 bg-blue-500/20 rounded-lg group-hover:bg-blue-500/30 transition-colors duration-300">
-                <FileText className="h-6 w-6 text-blue-300" />
+                <FileText className="h-5 w-5 sm:h-6 sm:w-6 text-blue-300" />
               </div>
               📤 Upload Documents & Ask Questions
             </CardTitle>
@@ -420,20 +420,20 @@ export default function QAPlatform() {
               <div className="p-3 bg-green-500/20 border border-green-500/30 rounded-lg">
                 <p className="text-green-200 font-medium mb-2">📁 Files Ready:</p>
                 {uploadedFiles.map((file, index) => (
-                  <p key={index} className="text-green-100 text-sm">• {file.name}</p>
+                  <p key={index} className="text-green-100 text-sm break-words">• {file.name}</p>
                 ))}
               </div>
             )}
             {/* Query Input */}
             <div className="space-y-2">
-              <label className="text-white font-medium" htmlFor="user-query">Your Question:</label>
+              <label className="text-white font-medium text-sm sm:text-base" htmlFor="user-query">Your Question:</label>
               <textarea
                 id="user-query"
                 ref={queryInputRef}
                 value={userQuery}
                 onChange={(e) => setUserQuery(e.target.value)}
                 placeholder="Ask a question about your document... (e.g., 'What is the main topic?', 'Summarize the key points')"
-                className="w-full p-3 border border-white/30 rounded-lg bg-white/10 backdrop-blur-sm text-white placeholder-gray-300 resize-none"
+                className="w-full p-3 sm:p-4 border border-white/30 rounded-lg bg-white/10 backdrop-blur-sm text-white placeholder-gray-300 resize-none"
                 rows={3}
                 disabled={isSubmitting}
                 aria-label="Your Question"
@@ -463,7 +463,7 @@ export default function QAPlatform() {
             )}
             {/* Document Selector - appears after upload */}
             {documents.length > 0 && (
-              <div className="mb-4">
+        <div className="mb-4">
                 <label className="block text-sm font-medium text-white mb-2" htmlFor="document-select">
                   📄 Select Document to Query:
                 </label>
@@ -471,7 +471,7 @@ export default function QAPlatform() {
                   id="document-select"
                   value={selectedDocumentId}
                   onChange={(e) => setSelectedDocumentId(e.target.value)}
-                  className="w-full p-3 border border-white/30 rounded-lg bg-white/10 backdrop-blur-sm text-white"
+          className="w-full p-3 sm:p-4 border border-white/30 rounded-lg bg-white/10 backdrop-blur-sm text-white"
                   aria-label="Select Document to Query"
                   aria-required="true"
                 >
@@ -512,9 +512,9 @@ export default function QAPlatform() {
         {questions.length > 0 && questions[questions.length - 1]?.answer && (
           <Card className='bg-white/10 backdrop-blur-md border border-white/20 shadow-2xl hover:shadow-green-500/20 transition-all duration-300 animate-slide-up group'>
             <CardHeader className="bg-gradient-to-r from-green-500/10 to-blue-500/10 border-b border-white/10 group-hover:from-green-500/15 group-hover:to-blue-500/15 transition-all duration-300">
-              <CardTitle className="text-2xl font-bold text-white flex items-center gap-3 group-hover:text-green-300 transition-colors duration-300">
+              <CardTitle className="text-xl sm:text-2xl font-bold text-white flex items-center gap-2 sm:gap-3 group-hover:text-green-300 transition-colors duration-300">
                 <div className="p-2 bg-green-500/20 rounded-lg group-hover:bg-green-500/30 transition-colors duration-300">
-                  <Brain className="h-6 w-6 text-green-300 animate-pulse" />
+                  <Brain className="h-5 w-5 sm:h-6 sm:w-6 text-green-300 animate-pulse" />
                 </div>
                 🤖 AI Answer
               </CardTitle>
@@ -618,20 +618,20 @@ export default function QAPlatform() {
         )}
 
         {/* Document Type Guide (moved below query) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
           <Card className="border-2 transition-colors bg-white/10 backdrop-blur-sm border-white/30 shadow-lg">
-            <CardContent className="p-4">
-              <h4 className="font-bold text-green-300 mb-2 text-lg">📚 Known Documents</h4>
-              <p className="text-sm font-semibold text-green-200">
+            <CardContent className="p-3 sm:p-4">
+              <h4 className="font-bold text-green-300 mb-2 text-base sm:text-lg">📚 Known Documents</h4>
+              <p className="text-xs sm:text-sm font-semibold text-green-200">
                 Documents with "known" in filename get lower weight (0.5x) - ideal for basic knowledge testing
               </p>
             </CardContent>
           </Card>
           
           <Card className="border-2 transition-colors bg-white/10 backdrop-blur-sm border-white/30 shadow-lg">
-            <CardContent className="p-4">
-              <h4 className="font-bold text-blue-300 mb-2 text-lg">🔍 Unknown Documents</h4>
-              <p className="text-sm font-semibold text-blue-200">
+            <CardContent className="p-3 sm:p-4">
+              <h4 className="font-bold text-blue-300 mb-2 text-base sm:text-lg">🔍 Unknown Documents</h4>
+              <p className="text-xs sm:text-sm font-semibold text-blue-200">
                 Other documents get higher weight (2.0x) - perfect for challenging or specialized content
               </p>
             </CardContent>
@@ -744,12 +744,12 @@ export default function QAPlatform() {
         {/* Empty State */}
         {documents.length === 0 && (
           <Card className="border-2 transition-colors bg-gradient-to-r from-blue-900 via-purple-900 to-indigo-900/80 backdrop-blur-sm border-blue-400/40 shadow-2xl">
-            <CardContent className="p-12 text-center ">
-              <FileText className="h-16 w-16 text-blue-300 mx-auto mb-4 animate-bounce" />
-              <h3 className="text-xl font-semibold text-blue-200 mb-5">
+            <CardContent className="p-6 sm:p-10 text-center ">
+              <FileText className="h-12 w-12 sm:h-16 sm:w-16 text-blue-300 mx-auto mb-4 animate-bounce" />
+              <h3 className="text-lg sm:text-xl font-semibold text-blue-200 mb-5">
                 No documents uploaded yet
               </h3>
-              <p className="text-base font-medium text-cyan-200 drop-shadow mb-4">
+              <p className="text-sm sm:text-base font-medium text-cyan-200 drop-shadow mb-4">
                 Upload PDF or TXT files to get started with question extraction and AI-powered answers
               </p>
             </CardContent>

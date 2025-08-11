@@ -35,7 +35,6 @@ export function FileUpload({ onFileUpload, isProcessing }: FileUploadProps) {
         file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
         file.type === 'application/msword'
       );
-      
       if (validFiles.length > 0) {
         const fileList = new DataTransfer();
         validFiles.forEach(file => fileList.items.add(file));
@@ -63,19 +62,19 @@ export function FileUpload({ onFileUpload, isProcessing }: FileUploadProps) {
         onDragOver={handleDrag}
         onDrop={handleDrop}
       >
-        <CardContent className="p-8">
+        <CardContent className="p-5 sm:p-8">
           <div className="text-center space-y-4">
             {isProcessing ? (
-              <Loader2 className="h-12 w-12 text-blue-600 mx-auto animate-spin" />
+              <Loader2 className="h-10 w-10 sm:h-12 sm:w-12 text-blue-600 mx-auto animate-spin" />
             ) : (
-              <Upload className="h-12 w-12 text-gray-100 mx-auto" />
+              <Upload className="h-10 w-10 sm:h-12 sm:w-12 text-gray-100 mx-auto" />
             )}
             
             <div>
-              <h3 className="text-lg font-bold text-white mb-2">
+              <h3 className="text-base sm:text-lg font-bold text-white mb-2">
                 {isProcessing ? 'Processing Documents...' : 'Upload Documents'}
               </h3>
-              <p className="text-gray-100 mb-4">
+              <p className="text-gray-100 mb-4 text-sm sm:text-base">
                 {isProcessing 
                   ? 'Extracting questions and generating answers...'
                   : 'Drag and drop your PDF, Word, or TXT files here, or click to browse'
@@ -96,12 +95,12 @@ export function FileUpload({ onFileUpload, isProcessing }: FileUploadProps) {
               <label htmlFor="file-upload">
                 <Button 
                   variant="outline" 
-                  className="cursor-pointer"
+                  className="cursor-pointer w-full sm:w-auto"
                   disabled={isProcessing}
                   asChild
                 >
                   <span>
-                    <FileText className="h-4 w-4 mr-2" />
+                    <FileText className="h-4 w-4 mr-2 inline-block" />
                     Choose Files
                   </span>
                 </Button>
