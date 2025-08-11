@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { FileUpload } from '@/components/file-upload';
+import { DocumentList } from '@/components/document-list';
 import { QuestionList } from '@/components/question-list';
 import { ScoreCard } from '@/components/score-card';
 import { ProgressBar } from '@/components/progress-bar';
@@ -12,6 +13,7 @@ import { FileText, Brain, Target, Upload } from 'lucide-react';
 
 import { useQueryFy } from '@/hooks/useQueryFy';
 import { checkBackendHealth } from '@/lib/api';
+import { buildApiUrl, API_CONFIG } from '@/lib/config';
 import { Document, Question } from '@/types';
 import { toast } from '@/hooks/use-toast';
 
@@ -34,6 +36,8 @@ export default function QAPlatform() {
     userFriendly: 0,
     relevance: 0,
   });
+  type CategoryRatingsType = { accuracy: number; efficacy: number; userFriendly: number; relevance: number };
+  const [ratingsByQuestion, setRatingsByQuestion] = useState<Record<string, CategoryRatingsType>>({});
   const queryInputRef = useRef<HTMLTextAreaElement>(null);
 
   const {
@@ -45,7 +49,6 @@ export default function QAPlatform() {
     handleCustomQuery,
     handleDeleteDocument,
     updateQuestionFeedback,
-    loadDocuments,
     clearAllDocuments,
   } = useQueryFy();
 
@@ -67,7 +70,8 @@ export default function QAPlatform() {
     setCurrentRating(null);
     setTotalScore(0);
     setRatingCount(0);
-    setCategoryRatings({ accuracy: 0, efficacy: 0, userFriendly: 0, relevance: 0 });
+  // ratings are tracked per-question; no global reset needed here
+    // Do not auto-load documents on page load; show only session uploads
   }, []);
 
   useEffect(() => {
@@ -106,6 +110,7 @@ export default function QAPlatform() {
       uploadedFiles.forEach(file => dt.items.add(file));
       await handleFileUpload(dt.files);
       setUploadedFiles([]);
+      // Newly uploaded files are already reflected in local state
       toast({
         title: 'Upload Successful',
         description: 'Your document(s) have been uploaded successfully!',
@@ -136,7 +141,7 @@ export default function QAPlatform() {
       setSelectedDocumentId(lastDoc.id);
       (async () => {
         try {
-          const res = await fetch(`https://queryfy-backend.onrender.com/api/upload/recommended-questions/${lastDoc.id}`);
+          const res = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.RECOMMENDED_QUESTIONS(lastDoc.id)));
           if (res.ok) {
             const data = await res.json();
             if (Array.isArray(data.questions) && data.questions.length > 0) {
@@ -187,9 +192,7 @@ export default function QAPlatform() {
     }
     setIsSubmitting(true);
     try {
-      console.log('🤖 Processing AI query...');
-      console.log('❓ Query:', userQuery);
-      console.log('📄 Document ID:', selectedDocumentId);
+  // Processing AI query
       // Find the document name from documents
       const selectedDoc = documents.find(doc => doc.id === selectedDocumentId);
       const documentName = selectedDoc?.name || 'Unknown Document';
@@ -200,17 +203,17 @@ export default function QAPlatform() {
           title: 'Query Successful',
           description: 'AI answer received!',
         });
-        console.log('✅ AI Answer received:', answer.substring(0, 100) + '...');
+  // AI answer received
       } else {
         toast({
           title: 'No Answer Returned',
           description: 'AI query completed but no answer was returned.',
           variant: 'destructive',
         });
-        console.log('⚠️ AI query completed but no answer returned');
+        // No answer returned
       }
       setUserQuery('');
-      console.log('🎉 Query completed successfully!');
+      // Query completed
     } catch (error) {
       console.error('❌ Query error:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
@@ -228,36 +231,28 @@ export default function QAPlatform() {
     updateQuestionFeedback(questionId, feedback);
   }, [updateQuestionFeedback]);
 
-  const handleCategoryRating = useCallback((questionId: string, category: keyof typeof categoryRatings, rating: number) => {
-    // Update the specific category rating
-    setCategoryRatings(prev => ({
-      ...prev,
-      [category]: rating
-    }));
-    
-    // Calculate overall score from all categories
-    const updatedRatings = { ...categoryRatings, [category]: rating };
-    const totalCategoryScore = Object.values(updatedRatings).reduce((sum, val) => sum + val, 0);
-    const averageScore = totalCategoryScore / 4; // 4 categories
-    
-    // Update overall score
-    setCurrentRating(Math.round(averageScore));
-    setTotalScore(prev => prev + averageScore);
-    setRatingCount(prev => prev + 1);
-    
-    // Update the question with the rating using the hook's feedback function
-    updateQuestionFeedback(questionId, averageScore > 6 ? 'positive' : 'negative');
-    
-    console.log(`⭐ User rated ${category}: ${rating}/10`);
-    console.log(`📊 Overall score: ${averageScore.toFixed(1)}/10`);
-  }, [categoryRatings, updateQuestionFeedback, totalScore, ratingCount]);
+  const handleCategoryRating = useCallback((questionId: string, category: keyof CategoryRatingsType, rating: number) => {
+    setRatingsByQuestion(prev => {
+      const current = prev[questionId] ?? { accuracy: 0, efficacy: 0, userFriendly: 0, relevance: 0 };
+      const updated = { ...current, [category]: rating } as CategoryRatingsType;
+      // Compute average
+      const totalCategoryScore = Object.values(updated).reduce((sum, val) => sum + val, 0);
+      const averageScore = totalCategoryScore / 4;
+      setCurrentRating(Math.round(averageScore));
+      setTotalScore(s => s + averageScore);
+      setRatingCount(c => c + 1);
+      // Persist overall rating into the question object and feedback signal
+      updateQuestionFeedback(questionId, averageScore > 6 ? 'positive' : 'negative');
+      return { ...prev, [questionId]: updated };
+    });
+  }, [updateQuestionFeedback]);
 
-  const clearAll = useCallback(() => {
-    // Clear all documents and questions by reloading
-    loadDocuments();
+  const clearAll = useCallback(async () => {
+    // Clear all documents in backend and reset local session state
+    await clearAllDocuments();
     setUploadedFiles([]);
     setUserQuery('');
-  }, [loadDocuments]);
+  }, [clearAllDocuments]);
 
 
 
@@ -336,7 +331,7 @@ export default function QAPlatform() {
             </CardContent>
           </Card>
           
-          <Card className='bg-white/10 backdrop-blur-md border border-white/20 shadow-2xl hover:bg-white/15 transition-all duration-300 hover:scale-105 hover:shadow-purple-500/20'>
+          <Card className='bg-white/10 backdrop-blur-md border border-white/20 shadow-2xl hover:bg-white/15 transition-all duration-300 hover:scale-105 hover:shadow-yellow-500/20'>
             <CardContent className="p-6">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-purple-500/20 rounded-lg">
@@ -375,10 +370,12 @@ export default function QAPlatform() {
                 <div>
                   <p className="text-lg font-semibold text-slate-200">Overall Score</p>
                   <p className="text-3xl font-bold text-white">
-                    {Object.values(categoryRatings).some(rating => rating > 0) 
-                      ? (Object.values(categoryRatings).reduce((sum, val) => sum + val, 0) / 4).toFixed(1)
-                      : '0.0'
-                    }/10
+                    {(() => {
+                      const activeQ = questions[questions.length - 1];
+                      const r = activeQ ? (ratingsByQuestion[activeQ.id] ?? { accuracy: 0, efficacy: 0, userFriendly: 0, relevance: 0 }) : { accuracy: 0, efficacy: 0, userFriendly: 0, relevance: 0 };
+                      const vals = Object.values(r);
+                      return (vals.some(v => v > 0) ? (vals.reduce((a,b)=>a+b,0)/4).toFixed(1) : '0.0') + '/10';
+                    })()}
                   </p>
                 </div>
               </div>
@@ -528,6 +525,7 @@ export default function QAPlatform() {
                 
                 {/* Rating Categories */}
                 <div className="space-y-4">
+                  {(() => { return null })()}
                   {[
                     { key: 'accuracy' as const, label: '🎯 Accuracy', desc: 'How correct is the information?' },
                     { key: 'efficacy' as const, label: '⚡ Efficacy', desc: 'How well does it solve your question?' },
@@ -541,7 +539,11 @@ export default function QAPlatform() {
                           <p className="text-slate-300 text-sm">{desc}</p>
                         </div>
                         <span className="text-yellow-400 font-bold text-lg">
-                          {categoryRatings[key] > 0 ? `${categoryRatings[key]}/10` : '-'}
+                          {(() => {
+                            const activeQ = questions[questions.length - 1];
+                            const r = activeQ ? (ratingsByQuestion[activeQ.id] ?? { accuracy: 0, efficacy: 0, userFriendly: 0, relevance: 0 }) : { accuracy: 0, efficacy: 0, userFriendly: 0, relevance: 0 };
+                            return r[key] > 0 ? `${r[key]}/10` : '-';
+                          })()}
                         </span>
                       </div>
                       <div className="flex gap-1">
@@ -552,7 +554,11 @@ export default function QAPlatform() {
                             variant="outline"
                             size="sm"
                             className={`w-8 h-8 p-0 text-sm font-bold transition-all duration-300 ${
-                              categoryRatings[key] === rating
+                              (() => {
+                                const activeQ = questions[questions.length - 1];
+                                const r = activeQ ? (ratingsByQuestion[activeQ.id] ?? { accuracy: 0, efficacy: 0, userFriendly: 0, relevance: 0 }) : { accuracy: 0, efficacy: 0, userFriendly: 0, relevance: 0 };
+                                return r[key] === rating;
+                              })()
                                 ? 'bg-yellow-500 hover:bg-yellow-600 text-white border-yellow-500 scale-110 shadow-lg shadow-yellow-500/50'
                                 : 'bg-white/10 hover:bg-yellow-500/70 text-white border-white/30 hover:scale-105 hover:shadow-md'
                             }`}
@@ -566,16 +572,32 @@ export default function QAPlatform() {
                 </div>
                 
                 {/* Overall Score Display */}
-                {Object.values(categoryRatings).some(rating => rating > 0) && (
+                {(() => {
+                  const activeQ = questions[questions.length - 1];
+                  const r = activeQ ? (ratingsByQuestion[activeQ.id] ?? { accuracy: 0, efficacy: 0, userFriendly: 0, relevance: 0 }) : { accuracy: 0, efficacy: 0, userFriendly: 0, relevance: 0 };
+                  return Object.values(r).some(v => v > 0);
+                })() && (
                   <div className="bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border border-yellow-500/30 rounded-xl p-5 hover:from-yellow-500/25 hover:to-orange-500/25 transition-all duration-300 shadow-lg">
                     <p className="text-yellow-100 font-bold text-center mb-4 text-xl">
-                      📊 Overall Score: {(Object.values(categoryRatings).reduce((sum, val) => sum + val, 0) / 4).toFixed(1)}/10
+                      {(() => {
+                        const activeQ = questions[questions.length - 1];
+                        const r = activeQ ? (ratingsByQuestion[activeQ.id] ?? { accuracy: 0, efficacy: 0, userFriendly: 0, relevance: 0 }) : { accuracy: 0, efficacy: 0, userFriendly: 0, relevance: 0 };
+                        return `📊 Overall Score: ${(Object.values(r).reduce((s, v) => s + v, 0) / 4).toFixed(1)}/10`;
+                      })()}
                     </p>
                     <div className="grid grid-cols-2 gap-3 text-sm">
-                      <div className="text-yellow-200 font-medium bg-white/5 rounded-lg p-2">🎯 Accuracy: {categoryRatings.accuracy}/10</div>
-                      <div className="text-yellow-200 font-medium bg-white/5 rounded-lg p-2">⚡ Efficacy: {categoryRatings.efficacy}/10</div>
-                      <div className="text-yellow-200 font-medium bg-white/5 rounded-lg p-2">👤 User Friendly: {categoryRatings.userFriendly}/10</div>
-                      <div className="text-yellow-200 font-medium bg-white/5 rounded-lg p-2">🔍 Relevance: {categoryRatings.relevance}/10</div>
+                      {(() => {
+                        const activeQ = questions[questions.length - 1];
+                        const r = activeQ ? (ratingsByQuestion[activeQ.id] ?? { accuracy: 0, efficacy: 0, userFriendly: 0, relevance: 0 }) : { accuracy: 0, efficacy: 0, userFriendly: 0, relevance: 0 };
+                        return (
+                          <>
+                            <div className="text-yellow-200 font-medium bg-white/5 rounded-lg p-2">🎯 Accuracy: {r.accuracy}/10</div>
+                            <div className="text-yellow-200 font-medium bg-white/5 rounded-lg p-2">⚡ Efficacy: {r.efficacy}/10</div>
+                            <div className="text-yellow-200 font-medium bg-white/5 rounded-lg p-2">👤 User Friendly: {r.userFriendly}/10</div>
+                            <div className="text-yellow-200 font-medium bg-white/5 rounded-lg p-2">🔍 Relevance: {r.relevance}/10</div>
+                          </>
+                        );
+                      })()}
                     </div>
                   </div>
                 )}
@@ -606,31 +628,12 @@ export default function QAPlatform() {
         </div>
 
         {/* Documents List */}
-        {documents.length > 0 && (
-          <Card className='bg-white/20 backdrop-blur-sm border border-white/30 shadow-lg'>
-            <CardHeader>
-              <CardTitle>📁 Uploaded Documents</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {documents.map((doc, index) => (
-                  <div key={`doc-${doc.id || index}`} className="p-4 border rounded-lg bg-white/20 backdrop-blur-sm border-white/30 shadow-lg">
-                    <div className="flex items-center justify-between mb-2">
-                      <h3 className="font-medium truncate text-white">{doc.name}</h3>
-                      <Badge variant={doc.type === 'known' ? 'secondary' : 'default'}>
-                        {doc.type}
-                      </Badge>
-                    </div>
-                    <p className="text-sm text-gray-300">Weight: {doc.weight}</p>
-                    <p className="text-xs text-gray-400">
-                      {doc.uploadedAt.toLocaleDateString()}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
+        <DocumentList
+          documents={documents}
+          onDeleteDocument={handleDeleteDocument}
+          selectedDocumentId={selectedDocumentId}
+          onSelectDocument={setSelectedDocumentId}
+        />
 
 
         {/* Recommended Questions */}

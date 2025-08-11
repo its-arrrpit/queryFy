@@ -33,20 +33,26 @@ export function useQueryFy() {
   }, []);
 
   const loadDocuments = useCallback(async () => {
-    const response = await getDocuments();
-    if (response.success && response.data) {
-      setBackendDocuments(response.data.documents);
-      
-      // Convert backend documents to frontend format
-      const frontendDocs: Document[] = response.data.documents.map(doc => ({
-        id: doc.id,
-        name: doc.originalName,
-        type: 'unknown' as const,
-        weight: Math.floor(doc.fileSize / 1024), // Use file size as weight
-        uploadedAt: new Date(doc.uploadedAt)
-      }));
-      
-      setDocuments(frontendDocs);
+  try {
+      const response = await getDocuments();
+      if (response.success && response.data) {
+        setBackendDocuments(response.data.documents);
+        
+        // Convert backend documents to frontend format
+        const frontendDocs: Document[] = response.data.documents.map(doc => ({
+          id: doc.id,
+          name: doc.originalName,
+          type: 'unknown' as const,
+          weight: Math.floor(doc.fileSize / 1024), // Use file size as weight
+          uploadedAt: new Date(doc.uploadedAt)
+        }));
+        
+        setDocuments(frontendDocs);
+      } else {
+        console.error('Failed to load documents:', response.error);
+      }
+    } catch (error) {
+      console.error('Error loading documents:', error);
     }
   }, []);
 
@@ -86,7 +92,6 @@ export function useQueryFy() {
           setBackendDocuments(prev => [...prev, backendDoc]);
 
           // Don't auto-generate questions - wait for user input
-          console.log('Document uploaded successfully:', document.originalName);
         }
       }
     } catch (error) {
@@ -186,7 +191,7 @@ export function useQueryFy() {
                      (document && ('originalName' in document ? document.originalName : document.name)) || 
                      'Unknown Document';
 
-      console.log('🔍 handleCustomQuery called with:', { documentId, queryText, docName });
+  // handleCustomQuery invoked
 
       // Create question entry immediately
       const questionId = `${documentId}-${Date.now()}-${Math.random()}`;

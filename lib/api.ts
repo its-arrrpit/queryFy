@@ -2,7 +2,9 @@
  * Delete all documents
  */
 
-const API_BASE_URL = 'https://queryfy-backend.onrender.com/api';
+import { API_CONFIG, buildApiUrl } from './config';
+
+const API_BASE_URL = API_CONFIG.BASE_URL;
 
 export async function deleteAllDocuments(): Promise<ApiResponse<{}>> {
   try {
@@ -10,8 +12,17 @@ export async function deleteAllDocuments(): Promise<ApiResponse<{}>> {
       method: 'DELETE',
     });
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || 'Delete all failed');
+      let message = 'Delete all failed';
+      try {
+        const ct = response.headers.get('content-type') || '';
+        if (ct.includes('application/json')) {
+          const errorData = await response.json();
+          message = errorData.message || message;
+        } else {
+          message = await response.text();
+        }
+      } catch {}
+      throw new Error(message);
     }
     return {
       success: true,
@@ -70,8 +81,17 @@ export async function uploadDocument(file: File): Promise<ApiResponse<{ document
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || 'Upload failed');
+      let message = 'Upload failed';
+      try {
+        const ct = response.headers.get('content-type') || '';
+        if (ct.includes('application/json')) {
+          const errorData = await response.json();
+          message = errorData.message || message;
+        } else {
+          message = await response.text();
+        }
+      } catch {}
+      throw new Error(message);
     }
 
     const data = await response.json();
@@ -116,8 +136,17 @@ export async function queryDocument(documentId: string, query: string): Promise<
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || 'Query failed');
+      let message = 'Query failed';
+      try {
+        const ct = response.headers.get('content-type') || '';
+        if (ct.includes('application/json')) {
+          const errorData = await response.json();
+          message = errorData.message || message;
+        } else {
+          message = await response.text();
+        }
+      } catch {}
+      throw new Error(message);
     }
 
     const data = await response.json();
@@ -142,8 +171,17 @@ export async function getDocuments(): Promise<ApiResponse<{ documents: BackendDo
     const response = await fetch(`${API_BASE_URL}/upload/documents`);
 
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || 'Failed to fetch documents');
+      let message = 'Failed to fetch documents';
+      try {
+        const ct = response.headers.get('content-type') || '';
+        if (ct.includes('application/json')) {
+          const errorData = await response.json();
+          message = errorData.message || message;
+        } else {
+          message = await response.text();
+        }
+      } catch {}
+      throw new Error(message);
     }
 
     const data = await response.json();
@@ -168,8 +206,17 @@ export async function getQueryHistory(documentId: string): Promise<ApiResponse<{
     const response = await fetch(`${API_BASE_URL}/query/history/${documentId}`);
 
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || 'Failed to fetch query history');
+      let message = 'Failed to fetch query history';
+      try {
+        const ct = response.headers.get('content-type') || '';
+        if (ct.includes('application/json')) {
+          const errorData = await response.json();
+          message = errorData.message || message;
+        } else {
+          message = await response.text();
+        }
+      } catch {}
+      throw new Error(message);
     }
 
     const data = await response.json();
@@ -196,8 +243,17 @@ export async function deleteDocument(documentId: string): Promise<ApiResponse<{}
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || 'Delete failed');
+      let message = 'Delete failed';
+      try {
+        const ct = response.headers.get('content-type') || '';
+        if (ct.includes('application/json')) {
+          const errorData = await response.json();
+          message = errorData.message || message;
+        } else {
+          message = await response.text();
+        }
+      } catch {}
+      throw new Error(message);
     }
 
     return {
@@ -218,7 +274,7 @@ export async function deleteDocument(documentId: string): Promise<ApiResponse<{}
  */
 export async function checkBackendHealth(): Promise<{status: 'healthy' | 'error'}> {
   try {
-    const response = await fetch(`${API_BASE_URL}/health`);
+  const response = await fetch(`${API_BASE_URL}/health`);
     if (response.ok) {
       return { status: 'healthy' };
     } else {
