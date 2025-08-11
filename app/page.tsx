@@ -557,7 +557,7 @@ export default function QAPlatform() {
                           })()}
                         </span>
                       </div>
-                      <div className="flex gap-1">
+                      <div className="grid grid-cols-5 sm:grid-cols-10 gap-1">
                         {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((rating) => (
                           <Button
                             key={rating}

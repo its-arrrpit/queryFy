@@ -54,7 +54,7 @@ export function DocumentList({
               <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                 <FileText className="h-4 w-4 sm:h-5 sm:w-5 text-blue-300 flex-shrink-0" />
                 <div className="min-w-0">
-                  <p className="text-white font-medium truncate" title={doc.name}>{doc.name}</p>
+                  <p className="text-white font-medium break-words sm:truncate" title={doc.name}>{doc.name}</p>
                   <div className="flex flex-wrap items-center gap-2 mt-1">
                     <Badge variant="secondary" className="text-xs">
                       {doc.type}
