@@ -92,10 +92,16 @@ export function useQueryFy() {
           setBackendDocuments(prev => [...prev, backendDoc]);
 
           // Don't auto-generate questions - wait for user input
+        } else {
+          // Propagate error so caller can surface it to the user
+          const message = uploadResponse.error || 'Upload failed';
+          throw new Error(message);
         }
       }
     } catch (error) {
       console.error('File upload error:', error);
+      // Re-throw to allow UI to display a proper error toast
+      throw error;
     } finally {
       setIsProcessing(false);
     }

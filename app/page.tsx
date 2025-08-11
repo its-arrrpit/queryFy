@@ -39,6 +39,7 @@ export default function QAPlatform() {
   type CategoryRatingsType = { accuracy: number; efficacy: number; userFriendly: number; relevance: number };
   const [ratingsByQuestion, setRatingsByQuestion] = useState<Record<string, CategoryRatingsType>>({});
   const queryInputRef = useRef<HTMLTextAreaElement>(null);
+  const isLikelyProd = typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
 
   const {
     documents,
@@ -313,6 +314,16 @@ export default function QAPlatform() {
           <p className="text-slate-200 font-medium text-xl max-w-3xl mx-auto leading-relaxed">
             🚀 Upload documents to extract questions and get AI-powered answers with intelligent scoring
           </p>
+          {/* Runtime debug banner to help detect misconfiguration in production */}
+          {(backendStatus !== 'healthy' || (isLikelyProd && API_CONFIG.BASE_URL.includes('localhost'))) && (
+            <div className="mt-3 text-sm px-3 py-2 inline-block rounded-md border border-yellow-400/50 bg-yellow-500/20 text-yellow-100">
+              <span className="font-semibold">Backend:</span> {backendStatus.toUpperCase()} •
+              <span className="ml-2 font-mono">{API_CONFIG.BASE_URL}</span>
+              {isLikelyProd && API_CONFIG.BASE_URL.includes('localhost') && (
+                <span className="ml-2">(warning: using localhost in production)</span>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Stats Cards */}
